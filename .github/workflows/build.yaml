@@ -1,0 +1,46 @@
+name: Build ejecutables
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Instalar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Instalar dependencias
+      run: |
+        pip install pyinstaller yt-dlp
+
+    - name: Descargar FFmpeg
+      run: |
+        curl -L -o ffmpeg.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+        powershell -command "Expand-Archive ffmpeg.zip -DestinationPath ffmpeg"
+
+    - name: Preparar FFmpeg
+      run: |
+        mkdir ffmpeg-bin
+        copy ffmpeg\*\bin\ffmpeg.exe ffmpeg-bin\
+        copy ffmpeg\*\bin\ffprobe.exe ffmpeg-bin\
+
+    - name: Compilar
+      run: |
+        pyinstaller --onedir ^
+        --add-binary "ffmpeg-bin/ffmpeg.exe;ffmpeg" ^
+        --add-binary "ffmpeg-bin/ffprobe.exe;ffmpeg" ^
+        --name descargador ^
+        downloader.py
+
+    - name: Subir artefacto
+      uses: actions/upload-artifact@v4
+      with:
+        name: descargador-windows
+        path: dist/
