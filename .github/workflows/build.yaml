@@ -36,10 +36,10 @@ jobs:
 
     - name: Compilar
       run: |
-        pyinstaller --onedir ^
-        --add-binary "ffmpeg-bin/ffmpeg.exe;ffmpeg" ^
-        --add-binary "ffmpeg-bin/ffprobe.exe;ffmpeg" ^
-        --name descargador ^
+        pyinstaller --onedir `
+        --add-binary "ffmpeg-bin/ffmpeg.exe;ffmpeg" `
+        --add-binary "ffmpeg-bin/ffprobe.exe;ffmpeg" `
+        --name descargador `
         downloader.py
 
     - name: Subir artefacto
