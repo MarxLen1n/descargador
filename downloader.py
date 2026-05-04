@@ -1,4 +1,10 @@
-import yt_dlp, os
+import yt_dlp
+import os, sys, platform
+import argparse
+
+###
+### DOWNLOADER
+###
 
 def progreso(d):
     if d['status'] == 'downloading':
@@ -32,6 +38,17 @@ FORMATOS = {
     'mp4': 'bestvideo[height<=1080]+bestaudio/best',
 }
 
+def get_base_path():
+        if getattr(sys, 'frozen', False):
+            return sys._MEIPASS
+        return os.path.dirname(__file__)
+
+if platform.system() == "Windows":
+    RUTA_FFMPEG = os.path.join(get_base_path(), "ffmpeg")
+
+    os.environ["PATH"] += os.pathsep + RUTA_FFMPEG
+
+    OPCIONES_BASE['ffmpeg_location'] = RUTA_FFMPEG
 
 def descargar(url: str, formato: str):
     if formato not in FORMATOS:
@@ -53,11 +70,27 @@ def descargar(url: str, formato: str):
     with yt_dlp.YoutubeDL(opciones) as ydl:
         ydl.download([url])
 
+###
+### CLI
+###
+
+def crear_parser():
+    parser = argparse.ArgumentParser(description="Descargador de videos y audios de YouTube")
+
+    parser.add_argument('url', help="URL del video o playlist a descargar")
+    parser.add_argument('-f', '--formato', default='mp3', choices=['mp3', 'mp4'], help="Formato de descarga")
+    parser.add_argument("-o", "--output", default="descargas", help="Carpeta de salida")
+
+    return parser
+
 if __name__ == "__main__":
-    url = input("URL del video: ")
-    formato = input("Formato (mp3/mp4): ").lower()
+    parser = crear_parser()
+    args = parser.parse_args()
+
+    OPCIONES_BASE['outtmpl'] = os.path.join(args.output, '%(title)s.%(ext)s')
+
     try:
-        descargar(url, formato)
-        print("Descarga completada.")
+        descargar(args.url, args.formato)
+        print("\nDescarga completada.")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"\nError: {e}")
