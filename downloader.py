@@ -83,7 +83,30 @@ def crear_parser():
 
     return parser
 
-if __name__ == "__main__":
+if __name__ == "__main__" and platform.system() == "Windows":
+    entrada = input("Url: ").strip().split()
+    if len(entrada) == 1:
+        url = entrada[0]
+        formato = 'mp3'
+    elif len(entrada) == 2:
+        url, formato = entrada
+        if formato not in FORMATOS:
+            print("Formato no soportado. Usando mp3 por defecto.")
+            formato = 'mp3'
+    else:
+        print("Entrada no válida. Uso: <url> [formato]")
+        sys.exit(1)
+
+    try:
+        descargar(url, formato)
+        print("\nDescarga completada.")
+    except Exception as e:
+        print(f"\nError: {e}")
+
+    input()
+
+
+elif __name__ == "__main__":
     parser = crear_parser()
     args = parser.parse_args()
 
@@ -94,4 +117,3 @@ if __name__ == "__main__":
         print("\nDescarga completada.")
     except Exception as e:
         print(f"\nError: {e}")
-        
