@@ -13,7 +13,7 @@ COLORES = {
 }
 
 class Ventana:
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, opciones: dict = None):
         ### Ventana
         self.root = root
 
@@ -30,7 +30,7 @@ class Ventana:
         root.config(menu=barra_superior)
 
         formato = tk.StringVar(value="mp4")
-        if OPCIONES_BASE.get("format") == FORMATOS["mp3"]:
+        if opciones and opciones.get("formato") == "mp3":
             formato.set("mp3")
 
         menu_formatos = tk.Menu(barra_superior)
@@ -52,11 +52,11 @@ class Ventana:
         botones = tk.Frame(ventana, bg=COLORES["fondo"])
         botones.pack(pady=10)
 
-        boton_descargar = tk.Button(botones, text="Descargar", bg=COLORES["boton"], fg=COLORES["texto"], activebackground=COLORES["boton_hover"], command=lambda: self.iniciar_descarga(entrada_url.get(), formato.get()))
-        boton_descargar.pack(pady=10, side="left")
+        self.boton_descargar = tk.Button(botones, text="Descargar", bg=COLORES["boton"], fg=COLORES["texto"], activebackground=COLORES["boton_hover"], command=lambda: self.iniciar_descarga(entrada_url.get(), formato.get()))
+        self.boton_descargar.pack(pady=10, side="left")
 
-        boton_cancelar = tk.Button(botones, text="Cancelar", bg=COLORES["boton"], fg=COLORES["texto"], activebackground=COLORES["boton_hover"], command=lambda: self.cancelar())
-        boton_cancelar.pack(pady=10, side="right")
+        self.boton_cancelar = tk.Button(botones, text="Cancelar", bg=COLORES["boton"], fg=COLORES["texto"], activebackground=COLORES["boton_hover"], command=lambda: self.cancelar(), state=tk.DISABLED)
+        self.boton_cancelar.pack(pady=10, side="right")
 
         # Barra de progreso
         marco_progreso = tk.Frame(ventana, bg=COLORES["fondo"])
@@ -85,6 +85,8 @@ class Ventana:
             messagebox.showwarning("Descarga en progreso", "Ya hay una descarga en curso. Por favor espera a que termine.")
             return
         
+        self.boton_descargar.config(state=tk.DISABLED)
+        self.boton_cancelar.config(state=tk.NORMAL)
         self.progreso.set(0)
         self.descargando = True
         self.cancelar_descarga = False
@@ -103,13 +105,13 @@ class Ventana:
 
         self.root.after(0, lambda: self.progreso.set(0))
         self.root.after(0, lambda: self.info_descarga.config(text=""))
+        self.root.after(0, lambda: self.boton_descargar.config(state=tk.NORMAL))
         self.descargando = False
 
     def configurar_carpeta(self):
         carpeta = filedialog.askdirectory(title="Seleccionar carpeta de descargas", initialdir=os.path.expanduser("~"))
         if carpeta:
             OPCIONES_BASE["outtmpl"] = os.path.join(carpeta, "%(title)s.%(ext)s")
-            guardar_opciones(OPCIONES_BASE, ruta_base("opciones_base.json"))
             messagebox.showinfo("Configuración guardada", f"Carpeta de descargas configurada a:\n{carpeta}")
 
     def progreso_hook(self, d: dict):
@@ -146,7 +148,19 @@ class Ventana:
             return
 
         self.cancelar_descarga = True
-        
+        self.boton_cancelar.config(state=tk.DISABLED)
+        self.boton_descargar.config(state=tk.NORMAL)
+        self.progreso.set(0)
+        self.info_descarga.config(text="")
+        self.descargando = False
+
+    def on_closing(self):
+        if self.descargando and not messagebox.askokcancel("Salir", "Hay una descarga en curso. ¿Quieres salir de todas formas?"):
+            return
+
+        self.cancelar_descarga = True
+        guardar_opciones({"carpeta_descargas": OPCIONES_BASE.get("outtmpl", "").split(os.sep)[-2], "formato_predeterminado": OPCIONES_BASE.get("formato", "mp3")}, ruta_base("ajustes.json"))
+        self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
