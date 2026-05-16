@@ -1,0 +1,6 @@
+{
+    "outtmpl": "descargas/%(title)s.%(ext)s",
+    "quiet": true,
+    "no_warnings": true,
+    "windowsfilenames": true
+}

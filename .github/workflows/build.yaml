@@ -2,7 +2,8 @@ name: Build ejecutables
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -12,38 +13,54 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
 
-    - name: Instalar Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Instalar dependencias
-      run: |
-        pip install pyinstaller yt-dlp
+      - name: Instalar dependencias
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller yt-dlp requests
 
-    - name: Descargar FFmpeg
-      run: |
-        curl -L -o ffmpeg.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
-        powershell -command "Expand-Archive ffmpeg.zip -DestinationPath ffmpeg"
+      - name: Descargar FFmpeg
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" `
+            -OutFile "ffmpeg.zip"
 
-    - name: Preparar FFmpeg
-      run: |
-        mkdir ffmpeg-bin
-        copy ffmpeg\*\bin\ffmpeg.exe ffmpeg-bin\
-        copy ffmpeg\*\bin\ffprobe.exe ffmpeg-bin\
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg
 
-    - name: Compilar
-      run: |
-        pyinstaller --onedir `
-        --add-binary "ffmpeg-bin/ffmpeg.exe;ffmpeg" `
-        --add-binary "ffmpeg-bin/ffprobe.exe;ffmpeg" `
-        --name descargador `
-        downloader.py
+      - name: Preparar FFmpeg
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ffmpeg-bin | Out-Null
 
-    - name: Subir artefacto
-      uses: actions/upload-artifact@v4
-      with:
-        name: descargador-windows
-        path: dist/
+          Copy-Item ffmpeg\*\bin\ffmpeg.exe ffmpeg-bin\
+          Copy-Item ffmpeg\*\bin\ffprobe.exe ffmpeg-bin\
+
+      - name: Compilar aplicación
+        shell: pwsh
+        run: |
+          pyinstaller `
+            --onedir `
+            --windowed `
+            --icon icon.ico `
+            --name descargador `
+            --add-data "opciones_base.json;." `
+            --add-binary "ffmpeg-bin\ffmpeg.exe;ffmpeg" `
+            --add-binary "ffmpeg-bin\ffprobe.exe;ffmpeg" `
+            --collect-all yt_dlp `
+            --paths src `
+            src\main.py
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: descargador-windows
+          path: dist/descargador
