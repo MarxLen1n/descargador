@@ -52,7 +52,7 @@ jobs:
             --windowed `
             --icon icon.ico `
             --name descargador `
-            --add-data "opciones_base.json;." `
+            --add-data "configuracion.json;." `
             --add-binary "ffmpeg-bin\ffmpeg.exe;ffmpeg" `
             --add-binary "ffmpeg-bin\ffprobe.exe;ffmpeg" `
             --collect-all yt_dlp `
