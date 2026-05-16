@@ -3,7 +3,7 @@ from tkinter import messagebox, filedialog, ttk
 import os
 import threading
 
-from downloader import descargar, OPCIONES_BASE, FORMATOS, guardar_opciones, ruta_base
+from downloader import descargar, OPCIONES_BASE, FORMATOS, guardar_ajustes, ruta_base
 
 COLORES = {
     "fondo": "#abb2bf",
@@ -13,9 +13,10 @@ COLORES = {
 }
 
 class Ventana:
-    def __init__(self, root: tk.Tk, opciones: dict):
+    def __init__(self, root: tk.Tk, ajustes: dict) -> None:
         ### Ventana
         self.root = root
+        self.ajustes = ajustes
 
         root.configure(bg=COLORES["fondo"])
         root.title("Descargador de YouTube")
@@ -30,7 +31,7 @@ class Ventana:
         root.config(menu=barra_superior)
 
         formato = tk.StringVar(value="mp4")
-        if opciones.get("formato") == "mp3":
+        if ajustes.get("formato_predeterminado") == "mp3":
             formato.set("mp3")
 
         menu_formatos = tk.Menu(barra_superior)
@@ -97,6 +98,7 @@ class Ventana:
             daemon=True).start()
 
     def descargar(self, url: str, formato: str):
+        self.ajustes["formato_predeterminado"] = formato
         try:
             descargar(url, formato, OPCIONES_BASE)
             self.root.after(0, lambda: messagebox.showinfo("Éxito", "Descarga completada."))
@@ -109,9 +111,10 @@ class Ventana:
         self.descargando = False
 
     def configurar_carpeta(self):
-        carpeta = filedialog.askdirectory(title="Seleccionar carpeta de descargas", initialdir=os.path.expanduser("~"))
+        carpeta = filedialog.askdirectory(title="Seleccionar carpeta de descargas", initialdir=os.path.expanduser(self.ajustes.get("carpeta_descargas", "~")))
         if carpeta:
             OPCIONES_BASE["outtmpl"] = os.path.join(carpeta, "%(title)s.%(ext)s")
+            self.ajustes["carpeta_descargas"] = carpeta
             messagebox.showinfo("Configuración guardada", f"Carpeta de descargas configurada a:\n{carpeta}")
 
     def progreso_hook(self, d: dict):
@@ -159,10 +162,10 @@ class Ventana:
             return
 
         self.cancelar_descarga = True
-        guardar_opciones({"carpeta_descargas": OPCIONES_BASE.get("outtmpl", "").split(os.sep)[-2], "formato_predeterminado": OPCIONES_BASE.get("formato", "mp3")}, ruta_base("ajustes.json"))
+        guardar_ajustes(self.ajustes)
         self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
-    Ventana(root, opciones={"formato": "mp3"})
+    Ventana(root, {"formato_predeterminado": "mp3", "carpeta_descargas": "descargas"})
     root.mainloop()

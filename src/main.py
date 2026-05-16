@@ -1,12 +1,12 @@
 import platform, os
 import tkinter as tk
 
-from downloader import OPCIONES_BASE, cargar_opciones, guardar_opciones, ruta_base
+from downloader import OPCIONES_BASE, cargar_ajustes, ruta_base
 from tui import parser
 from gui import Ventana
 
 if __name__ == "__main__":
-    d = cargar_opciones(ruta_base("ajustes.json"))
+    d = cargar_ajustes()
 
     if platform.system() == "Windows":
         RUTA_FFMPEG = os.path.join(ruta_base(), "ffmpeg")

@@ -17,20 +17,20 @@ FORMATOS = {
     "mp4": "bestvideo[height<=1080]+bestaudio/best",
 }
 
-def cargar_opciones(ruta: Path) -> dict: # devuelve un diccionario con las opciones + el formato de salida
-    if os.path.exists(ruta):
-        with open(ruta, "r") as f:
-            opciones = json.load(f)
+def cargar_ajustes() -> dict: # devuelve un diccionario con los ajustes
+    if os.path.exists(ruta_base("ajustes.json")):
+        with open(ruta_base("ajustes.json"), "r") as f:
+            ajustes = json.load(f)
+    else:
+        ajustes = {}
     
-    OPCIONES_BASE["outtmpl"] = os.join(opciones.get("carpeta_descargas", "descargas"), OPCIONES_BASE["outtmpl"])
+    OPCIONES_BASE["outtmpl"] = os.path.join(ajustes.get("carpeta_descargas", "descargas"), OPCIONES_BASE["outtmpl"])
 
-    o = OPCIONES_BASE.copy()
-    o["formato"] = opciones.get("formato_predeterminado", "mp3")
-    return o
+    return ajustes if ajustes else {"carpeta_descargas": os.path.expanduser("~"), "formato_predeterminado": "mp3"}
 
-def guardar_opciones(opciones: dict, ruta: Path):
-    with open(ruta, "w") as f:
-        json.dump(opciones, f, indent=4)
+def guardar_ajustes(ajustes: dict) -> None:
+    with open(ruta_base("ajustes.json"), "w") as f:
+        json.dump(ajustes, f, indent=4)
 
 def ruta_base(nombre: str = "") -> Path:
     if getattr(sys, "frozen", False):
@@ -40,12 +40,11 @@ def ruta_base(nombre: str = "") -> Path:
 
     return base / nombre
 
-def descargar(url: str, formato: str, opciones: dict = None):
+def descargar(url: str, formato: str, opts: dict) -> None:
     if formato not in FORMATOS:
         raise ValueError("Formato no soportado")
 
-    if opciones is None:
-        opciones = OPCIONES_BASE.copy()
+    opciones = opts.copy()
 
     opciones.pop("postprocessors", None)
     opciones.pop("merge_output_format", None)
