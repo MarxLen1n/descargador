@@ -1,6 +1,6 @@
-import argparse, platform, os, sys
+import argparse, os
 
-from downloader import descargar, OPCIONES_BASE, FORMATOS
+from downloader import descargar, guardar_opciones, ruta_base, OPCIONES_BASE, FORMATOS
 
 def progreso(d):
     if d["status"] == "downloading":
@@ -21,14 +21,13 @@ def progreso(d):
     elif d["status"] == "finished":
         print("\nProcesando...")
 
-
-def parser():
+def parser(opciones: dict = None):
     ### Crear parser
     parser = argparse.ArgumentParser(description="Descargador de videos y audios de YouTube")
 
     parser.add_argument("url", help="URL del video o playlist a descargar")
-    parser.add_argument("-f", "--formato", default="mp3", choices=["mp3", "mp4"], help="Formato de descarga")
-    parser.add_argument("-o", "--output", default="descargas", help="Carpeta de salida")
+    parser.add_argument("-f", "--formato", default=opciones.get("formato_predeterminado", "mp3") if opciones else "mp3", choices=FORMATOS.keys(), help="Formato de descarga")
+    parser.add_argument("-o", "--output", default=opciones.get("carpeta_descargas", "descargas") if opciones else "descargas", help="Carpeta de salida")
 
     args = parser.parse_args()
 
@@ -41,6 +40,8 @@ def parser():
         print("\nDescarga completada.")
     except Exception as e:
         print(f"\nError: {e}")
+
+    guardar_opciones({"carpeta_descargas": args.output, "formato_predeterminado": args.formato}, ruta_base("ajustes.json"))
 
 if __name__ == "__main__":
     parser()

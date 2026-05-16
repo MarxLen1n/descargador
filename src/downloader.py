@@ -6,7 +6,7 @@ import os, json
 
 
 OPCIONES_BASE = {
-    "outtmpl": os.path.join("descargas", "%(title)s.%(ext)s"),
+    "outtmpl": "%(title)s.%(ext)s",
     "quiet": True,
     "no_warnings": True,
     "windowsfilenames": True,
@@ -17,11 +17,16 @@ FORMATOS = {
     "mp4": "bestvideo[height<=1080]+bestaudio/best",
 }
 
-def cargar_opciones(ruta: Path):
+def cargar_opciones(ruta: Path) -> dict: # devuelve un diccionario con las opciones + el formato de salida
     if os.path.exists(ruta):
         with open(ruta, "r") as f:
             opciones = json.load(f)
-            OPCIONES_BASE.update(opciones)
+    
+    OPCIONES_BASE["outtmpl"] = os.join(opciones.get("carpeta_descargas", "descargas"), OPCIONES_BASE["outtmpl"])
+
+    o = OPCIONES_BASE.copy()
+    o["formato"] = opciones.get("formato_predeterminado", "mp3")
+    return o
 
 def guardar_opciones(opciones: dict, ruta: Path):
     with open(ruta, "w") as f:
@@ -41,8 +46,6 @@ def descargar(url: str, formato: str, opciones: dict = None):
 
     if opciones is None:
         opciones = OPCIONES_BASE.copy()
-    else:        
-        opciones = opciones.copy()
 
     opciones.pop("postprocessors", None)
     opciones.pop("merge_output_format", None)
