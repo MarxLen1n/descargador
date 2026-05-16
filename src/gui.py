@@ -13,7 +13,7 @@ COLORES = {
 }
 
 class Ventana:
-    def __init__(self, root: tk.Tk, opciones: dict = None):
+    def __init__(self, root: tk.Tk, opciones: dict):
         ### Ventana
         self.root = root
 
@@ -30,7 +30,7 @@ class Ventana:
         root.config(menu=barra_superior)
 
         formato = tk.StringVar(value="mp4")
-        if opciones and opciones.get("formato") == "mp3":
+        if opciones.get("formato") == "mp3":
             formato.set("mp3")
 
         menu_formatos = tk.Menu(barra_superior)
@@ -164,5 +164,5 @@ class Ventana:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    Ventana(root)
+    Ventana(root, opciones={"formato": "mp3"})
     root.mainloop()
