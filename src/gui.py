@@ -48,7 +48,7 @@ class Ventana:
         entrada_url = tk.Entry(ventana, width=50)
         entrada_url.pack()
 
-        # Botó de descarga
+        # Botón de descarga
         botones = tk.Frame(ventana, bg=COLORES["fondo"])
         botones.pack(pady=10)
 
@@ -59,16 +59,23 @@ class Ventana:
         boton_cancelar.pack(pady=10, side="right")
 
         # Barra de progreso
+        marco_progreso = tk.Frame(ventana, bg=COLORES["fondo"])
+        marco_progreso.pack(pady=10)
+
         OPCIONES_BASE["progress_hooks"] = [self.progreso_hook]
         self.progreso = tk.DoubleVar()
 
         self.barra = ttk.Progressbar(
-            ventana,
+            marco_progreso,
             variable=self.progreso,
             maximum=100,
             length=300
         )
-        self.barra.pack(pady=10)
+        self.barra.grid(row=0, column=0, padx=5)
+
+        # Información de descarga
+        self.info_descarga = tk.Label(marco_progreso, text="", bg=COLORES["fondo"], fg=COLORES["texto"])
+        self.info_descarga.grid(row=1, column=0, pady=5)
 
         self.descargando = False
         self.cancelar_descarga = False
@@ -94,7 +101,8 @@ class Ventana:
         except Exception as e:
             self.root.after(0, lambda: messagebox.showerror("Error", f"Error: {str(e)}"))
 
-        self.progreso.set(0)
+        self.root.after(0, lambda: self.progreso.set(0))
+        self.root.after(0, lambda: self.info_descarga.config(text=""))
         self.descargando = False
 
     def configurar_carpeta(self):
@@ -109,12 +117,28 @@ class Ventana:
             raise Exception("Descarga cancelada por el usuario.")
 
         if d["status"] == "downloading":
-            total = d.get("total_bytes") or d.get("total_bytes_estimate")
-            descargado = d.get("downloaded_bytes", 0)
+            info_descarga = {}
 
-            if total:
-                porcentaje = (descargado / total) * 100
+            info_descarga["total"] = d.get("total_bytes") or d.get("total_bytes_estimate")
+            info_descarga["descargado"] = d.get("downloaded_bytes", 0)
+            info_descarga["velocidad"] = d.get("speed", 0)
+            info_descarga["eta"] = d.get("eta", 0)
+
+            if info_descarga["total"]:
+                porcentaje = (info_descarga["descargado"] / info_descarga["total"]) * 100
                 self.root.after(0, lambda p=porcentaje: self.progreso.set(p))
+                self.root.after(0, lambda: self.barra.update())
+
+                self.root.after(0, lambda: self.info_descarga.config(text=self.procesar_info_descarga(info_descarga)))
+
+    def procesar_info_descarga(self, info_descarga: dict) -> str:
+        descargado = info_descarga.get("descargado", 0)
+        total = info_descarga.get("total", 0)
+        velocidad = info_descarga.get("velocidad", 0)
+        eta = info_descarga.get("eta", 0)
+
+        texto = f"{descargado/1024/1024:.2f}MB / {total/1024/1024:.2f}MB | {velocidad/1024:.1f} KB/s | ETA: {eta}s"
+        return texto
 
     def cancelar(self):
         if not self.descargando:
