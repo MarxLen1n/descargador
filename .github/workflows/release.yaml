@@ -37,7 +37,7 @@ jobs:
             pyinstaller src/main_tui.py ^
               --onefile ^
               --name descargador-tui ^
-              --icon icon.ico ^
+              --icon assets/icon.ico ^
               --add-binary "ffmpeg-bin\ffmpeg.exe;ffmpeg" ^
               --add-binary "ffmpeg-bin\ffprobe.exe;ffmpeg"
           )
@@ -75,13 +75,13 @@ jobs:
             pyinstaller src/main_gui.py \
               --onefile \
               --name descargador \
-              --icon icon.ico \
+              --icon assets/icon.ico \
               --noconsole
           else
             pyinstaller src/main_tui.py \
               --onefile \
               --name descargador-tui \
-              --icon icon.ico
+              --icon assets/icon.ico
           fi
 
       - name: Upload artifact
