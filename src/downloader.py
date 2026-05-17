@@ -21,11 +21,16 @@ def cargar_ajustes() -> dict: # devuelve un diccionario con los ajustes
         with open(ruta_base("ajustes.json"), "r") as f:
             ajustes = json.load(f)
     else:
-        ajustes = {}
+        ajustes = {"carpeta_descargas": os.path.join(os.path.expanduser("~"), "Descargas"), "formato_predeterminado": "mp3"}
+
+    if not ajustes.get("carpeta_descargas", None):
+        ajustes["carpeta_descargas"] = os.path.join(os.path.expanduser("~"), "Descargas")
+    if not ajustes.get("formato_predeterminado", None):
+        ajustes["formato_predeterminado"] = "mp3"
     
     OPCIONES_BASE["outtmpl"] = os.path.join(ajustes.get("carpeta_descargas", "descargas"), OPCIONES_BASE["outtmpl"])
 
-    return ajustes if ajustes else {"carpeta_descargas": os.path.expanduser("~"), "formato_predeterminado": "mp3"}
+    return ajustes
 
 def guardar_ajustes(ajustes: dict) -> None:
     with open(ruta_base("ajustes.json"), "w") as f:
