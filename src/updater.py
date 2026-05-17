@@ -88,3 +88,19 @@ del "%~f0"
         os.replace(nuevo_archivo, actual)
 
         os.execv(actual, sys.argv)
+
+if __name__ == "__main__":
+    actualizacion, release = hay_actualizacion()
+
+    if not actualizacion:
+        print("No hay actualizaciones disponibles.")
+        sys.exit()
+
+    print(f"Hay una nueva versión disponible: {release['tag_name']}. Descargando actualización...")
+
+    try:
+        nuevo_binario = descargar_actualizacion(release)
+        print("Actualización descargada. Reemplazando binario...")
+        reemplazar_binario(nuevo_binario)
+    except Exception as e:
+        print(f"Error al actualizar: {e}")
