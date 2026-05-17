@@ -4,7 +4,7 @@ from tkinter import messagebox, filedialog, ttk
 import threading
 
 from downloader import FORMATOS, descargar, OPCIONES_BASE, cargar_ajustes, guardar_ajustes, ruta_base
-from updater import hay_actualizacion, descargar_actualizacion
+from updater import hay_actualizacion, descargar_actualizacion, reemplazar_binario
 from version import VERSION
 
 COLORES = {
@@ -18,7 +18,7 @@ class Ventana:
     def __init__(self, root: tk.Tk, ajustes: dict) -> None:
         ### Ventana
         self.root = root
-        self.ajustes = ajustes
+        self.ajustes = ajustes.copy()
 
         root.configure(bg=COLORES["fondo"])
         root.title(f"Descargador de YouTube v{VERSION}")
@@ -32,13 +32,13 @@ class Ventana:
         barra_superior = tk.Menu(root)
         root.config(menu=barra_superior)
 
-        formato = tk.StringVar(value=ajustes.get("formato_predeterminado", "mp3"))
+        self.formato = tk.StringVar(value=ajustes.get("formato_predeterminado", "mp3"))
 
         menu_formatos = tk.Menu(barra_superior)
         for formato in FORMATOS.keys():
-            menu_formatos.add_radiobutton(label=formato.upper(), variable=formato, value=formato, command=lambda f=formato: barra_superior.entryconfig(1, label=f"Formato: {f.upper()}"))
+            menu_formatos.add_radiobutton(label=formato.upper(), variable=self.formato, value=formato, command=lambda f=formato: barra_superior.entryconfig(1, label=f"Formato: {f.upper()}"))
 
-        barra_superior.add_cascade(label=f"Formato: {formato.get().upper()}", menu=menu_formatos)
+        barra_superior.add_cascade(label=f"Formato: {self.formato.get().upper()}", menu=menu_formatos)
 
         # Menu carpeta
         barra_superior.add_command(label="Configurar carpeta", command=self.configurar_carpeta)
@@ -53,7 +53,7 @@ class Ventana:
         botones = tk.Frame(ventana, bg=COLORES["fondo"])
         botones.pack(pady=10)
 
-        self.boton_descargar = tk.Button(botones, text="Descargar", bg=COLORES["boton"], fg=COLORES["texto"], activebackground=COLORES["boton_hover"], command=lambda: self.iniciar_descarga(entrada_url.get(), formato.get()))
+        self.boton_descargar = tk.Button(botones, text="Descargar", bg=COLORES["boton"], fg=COLORES["texto"], activebackground=COLORES["boton_hover"], command=lambda: self.iniciar_descarga(entrada_url.get(), self.formato.get()))
         self.boton_descargar.pack(pady=10, side="left")
 
         self.boton_cancelar = tk.Button(botones, text="Cancelar", bg=COLORES["boton"], fg=COLORES["texto"], activebackground=COLORES["boton_hover"], command=lambda: self.cancelar(), state=tk.DISABLED)
@@ -83,7 +83,8 @@ class Ventana:
         if actualizacion:
             if messagebox.askyesno("Actualización disponible", f"Hay una nueva versión disponible: {release['tag_name']}. ¿Quieres descargarla?"):
                 try:
-                    descargar_actualizacion(release)
+                    binario = descargar_actualizacion(release)
+                    reemplazar_binario(binario)
                     messagebox.showinfo("Actualización descargada", "La actualización se ha descargado y se instalará al reiniciar el programa.")
                 except Exception as e:
                     messagebox.showerror("Error de actualización", f"No se pudo descargar la actualización: {str(e)}")
@@ -110,7 +111,7 @@ class Ventana:
     def descargar(self, url: str, formato: str):
         self.ajustes["formato_predeterminado"] = formato
         try:
-            descargar(url, formato, OPCIONES_BASE)
+            descargar(url, formato, self.ajustes)
             self.root.after(0, lambda: messagebox.showinfo("Éxito", "Descarga completada."))
         except Exception as e:
             self.root.after(0, lambda: messagebox.showerror("Error", f"Error: {str(e)}"))
@@ -118,6 +119,7 @@ class Ventana:
         self.root.after(0, lambda: self.progreso.set(0))
         self.root.after(0, lambda: self.info_descarga.config(text=""))
         self.root.after(0, lambda: self.boton_descargar.config(state=tk.NORMAL))
+        self.root.after(0, lambda: self.boton_cancelar.config(state=tk.DISABLED))
         self.descargando = False
 
     def configurar_carpeta(self):

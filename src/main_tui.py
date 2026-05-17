@@ -1,7 +1,7 @@
 import argparse, os, platform
 
 from downloader import descargar, cargar_ajustes, guardar_ajustes, ruta_base, OPCIONES_BASE, FORMATOS
-from updater import hay_actualizacion, descargar_actualizacion
+from updater import hay_actualizacion, descargar_actualizacion, reemplazar_binario
 from version import VERSION
 
 def progreso(d: dict):
@@ -40,7 +40,8 @@ def parser(ajustes: dict):
         if actualizacion:
             print(f"Hay una nueva versión disponible: {release['tag_name']}. Descargando actualización...")
             try:
-                descargar_actualizacion(release)
+                binario = descargar_actualizacion(release)
+                reemplazar_binario(binario)
                 print("Actualización descargada.")
             except Exception as e:
                 print(f"Error al descargar la actualización: {e}")
