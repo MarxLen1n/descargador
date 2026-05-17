@@ -105,9 +105,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download artifacts (Windows GUI)
+        uses: actions/download-artifact@v4
         with:
-          path: dist
+          name: descargador-gui-windows
+          path: dist/descargador-gui-windows
+
+      - name: Download artifacts (Windows TUI)
+        uses: actions/download-artifact@v4
+        with:
+          name: descargador-tui-windows
+          path: dist/descargador-tui-windows
+
+      - name: Download artifacts (Linux GUI)
+        uses: actions/download-artifact@v4
+        with:
+          name: descargador-gui-linux
+          path: dist/descargador-gui-linux
+
+      - name: Download artifacts (Linux TUI)
+        uses: actions/download-artifact@v4
+        with:
+          name: descargador-tui-linux
+          path: dist/descargador-tui-linux
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
