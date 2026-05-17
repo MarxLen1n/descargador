@@ -4,7 +4,6 @@ import sys
 import yt_dlp
 import os, json
 
-
 OPCIONES_BASE = {
     "outtmpl": "%(title)s.%(ext)s",
     "quiet": True,
