@@ -1,9 +1,9 @@
+import platform, os
 import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
-import os
 import threading
 
-from downloader import descargar, OPCIONES_BASE, FORMATOS, guardar_ajustes, ruta_base
+from downloader import FORMATOS, descargar, OPCIONES_BASE, cargar_ajustes, guardar_ajustes, ruta_base
 
 COLORES = {
     "fondo": "#abb2bf",
@@ -30,13 +30,11 @@ class Ventana:
         barra_superior = tk.Menu(root)
         root.config(menu=barra_superior)
 
-        formato = tk.StringVar(value="mp4")
-        if ajustes.get("formato_predeterminado") == "mp3":
-            formato.set("mp3")
+        formato = tk.StringVar(value=ajustes.get("formato_predeterminado", "mp3"))
 
         menu_formatos = tk.Menu(barra_superior)
-        menu_formatos.add_radiobutton(label="MP3", variable=formato, value="mp3", command=lambda: barra_superior.entryconfig(1, label="Formato: MP3"))
-        menu_formatos.add_radiobutton(label="MP4", variable=formato, value="mp4", command=lambda: barra_superior.entryconfig(1, label="Formato: MP4"))
+        for formato in FORMATOS.keys():
+            menu_formatos.add_radiobutton(label=formato.upper(), variable=formato, value=formato, command=lambda f=formato: barra_superior.entryconfig(1, label=f"Formato: {f.upper()}"))
 
         barra_superior.add_cascade(label=f"Formato: {formato.get().upper()}", menu=menu_formatos)
 
@@ -165,7 +163,21 @@ class Ventana:
         guardar_ajustes(self.ajustes)
         self.root.destroy()
 
-if __name__ == "__main__":
+def main():
+    # Configurar ruta de ffmpeg en Windows
+    if platform.system() == "Windows":
+        RUTA_FFMPEG = os.path.join(ruta_base(), "ffmpeg")
+
+        os.environ["PATH"] += os.pathsep + RUTA_FFMPEG
+
+        OPCIONES_BASE["ffmpeg_location"] = RUTA_FFMPEG
+
+    # Iniciar descargador
+    ajustes = cargar_ajustes()
+
     root = tk.Tk()
-    Ventana(root, {"formato_predeterminado": "mp3", "carpeta_descargas": "descargas"})
+    Ventana(root, ajustes)
     root.mainloop()
+
+if __name__ == "__main__":
+    main()
