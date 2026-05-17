@@ -4,6 +4,8 @@ from tkinter import messagebox, filedialog, ttk
 import threading
 
 from downloader import FORMATOS, descargar, OPCIONES_BASE, cargar_ajustes, guardar_ajustes, ruta_base
+from updater import hay_actualizacion, descargar_actualizacion
+from version import VERSION
 
 COLORES = {
     "fondo": "#abb2bf",
@@ -19,7 +21,7 @@ class Ventana:
         self.ajustes = ajustes
 
         root.configure(bg=COLORES["fondo"])
-        root.title("Descargador de YouTube")
+        root.title(f"Descargador de YouTube v{VERSION}")
         root.geometry("400x200")
 
         ### Widgets
@@ -75,6 +77,16 @@ class Ventana:
         # Información de descarga
         self.info_descarga = tk.Label(marco_progreso, text="", bg=COLORES["fondo"], fg=COLORES["texto"])
         self.info_descarga.grid(row=1, column=0, pady=5)
+
+        # Actualizaciones
+        actualizacion, release = hay_actualizacion()
+        if actualizacion:
+            if messagebox.askyesno("Actualización disponible", f"Hay una nueva versión disponible: {release['tag_name']}. ¿Quieres descargarla?"):
+                try:
+                    descargar_actualizacion(release)
+                    messagebox.showinfo("Actualización descargada", "La actualización se ha descargado y se instalará al reiniciar el programa.")
+                except Exception as e:
+                    messagebox.showerror("Error de actualización", f"No se pudo descargar la actualización: {str(e)}")
 
         self.descargando = False
         self.cancelar_descarga = False

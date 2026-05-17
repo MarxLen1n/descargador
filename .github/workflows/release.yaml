@@ -28,15 +28,15 @@ jobs:
           if "${{ matrix.target }}"=="gui" (
             pyinstaller src/main_gui.py ^
               --onefile ^
-              --name descargador ^
-              --icon icon.ico ^
+              --name descargador-gui-windows ^
+              --icon assets/icon.ico ^
               --noconsole ^
               --add-binary "ffmpeg-bin\ffmpeg.exe;ffmpeg" ^
               --add-binary "ffmpeg-bin\ffprobe.exe;ffmpeg"
           ) else (
             pyinstaller src/main_tui.py ^
               --onefile ^
-              --name descargador-tui ^
+              --name descargador-tui-windows ^
               --icon assets/icon.ico ^
               --add-binary "ffmpeg-bin\ffmpeg.exe;ffmpeg" ^
               --add-binary "ffmpeg-bin\ffprobe.exe;ffmpeg"
@@ -74,13 +74,13 @@ jobs:
           if [ "${{ matrix.target }}" = "gui" ]; then
             pyinstaller src/main_gui.py \
               --onefile \
-              --name descargador \
+              --name descargador-gui-linux \
               --icon assets/icon.ico \
               --noconsole
           else
             pyinstaller src/main_tui.py \
               --onefile \
-              --name descargador-tui \
+              --name descargador-tui-linux \
               --icon assets/icon.ico
           fi
 

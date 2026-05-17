@@ -1,6 +1,8 @@
 import argparse, os, platform
 
 from downloader import descargar, cargar_ajustes, guardar_ajustes, ruta_base, OPCIONES_BASE, FORMATOS
+from updater import hay_actualizacion, descargar_actualizacion
+from version import VERSION
 
 def progreso(d: dict):
     if d["status"] == "downloading":
@@ -23,19 +25,36 @@ def progreso(d: dict):
 
 def parser(ajustes: dict):
     ### Crear parser
-    parser = argparse.ArgumentParser(description="Descargador de videos y audios de YouTube")
+    parser = argparse.ArgumentParser(description=f"Descargador de videos y audios de YouTube v{VERSION}")
 
     parser.add_argument("url", help="URL del video o playlist a descargar")
+    parser.add_argument("--actualizar", action="store_true", help="Buscar e instalar actualizaciones")
     parser.add_argument("-f", "--formato", default=ajustes.get("formato_predeterminado", "mp3"), choices=FORMATOS.keys(), help="Formato de descarga")
     parser.add_argument("-o", "--output", default=ajustes.get("carpeta_descargas", "descargas"), help="Carpeta de salida")
 
     args = parser.parse_args()
 
+    # Actualizar si se solicita
+    if args.actualizar:
+        actualizacion, release = hay_actualizacion()
+        if actualizacion:
+            print(f"Hay una nueva versión disponible: {release['tag_name']}. Descargando actualización...")
+            try:
+                descargar_actualizacion(release)
+                print("Actualización descargada.")
+            except Exception as e:
+                print(f"Error al descargar la actualización: {e}")
+        else:
+            print("No hay actualizaciones disponibles.")
+        return
+
+    # Preparar descarga
     os.makedirs(args.output, exist_ok=True)
 
     OPCIONES_BASE["outtmpl"] = os.path.join(args.output, "%(title)s.%(ext)s")
     OPCIONES_BASE["progress_hooks"] = [progreso]
 
+    # Descargar
     try:
         descargar(args.url, args.formato, OPCIONES_BASE)
         print("\nDescarga completada.")
@@ -43,6 +62,11 @@ def parser(ajustes: dict):
         print(f"\nError: {e}")
 
     guardar_ajustes({"carpeta_descargas": args.output, "formato_predeterminado": args.formato})
+
+    # Buscar actualizaciones
+    actualizacion, release = hay_actualizacion()
+    if actualizacion:
+        print(f"\nHay una nueva versión disponible: {release['tag_name']}. Para descargarla, ejecuta el programa con la opción --actualizar.")
 
 def main():
     # Configurar ruta de ffmpeg en Windows
