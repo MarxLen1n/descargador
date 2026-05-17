@@ -53,7 +53,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-${{ matrix.target }}
+          name: descargador-${{ matrix.target }}-windows
           path: dist/*
 
   build-linux:
@@ -95,7 +95,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-${{ matrix.target }}
+          name: descargador-${{ matrix.target }}-linux
           path: dist/*
 
   release:
