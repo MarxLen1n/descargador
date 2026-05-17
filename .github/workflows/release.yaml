@@ -22,6 +22,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt pyinstaller
 
+      - name: Download FFmpeg
+        run: |
+          curl -L -o ffmpeg.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+          tar -xf ffmpeg.zip
+          mkdir ffmpeg-bin
+          copy ffmpeg-*/bin/ffmpeg.exe ffmpeg-bin/
+          copy ffmpeg-*/bin/ffprobe.exe ffmpeg-bin/
+
       - name: Build Windows ${{ matrix.target }}
         shell: cmd
         run: |
