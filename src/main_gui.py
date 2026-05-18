@@ -181,7 +181,9 @@ def main():
     # Configurar ruta de ffmpeg en Windows
     if platform.system() == "Windows" and getattr(sys, "frozen", False):
         base = sys._MEIPASS
-        return os.path.join(base, "ffmpeg")
+        ffmpeg_dir = os.path.join(base, "ffmpeg")
+        os.environ["PATH"] += os.pathsep + ffmpeg_dir
+        OPCIONES_BASE["ffmpeg_location"] = ffmpeg_dir
     
     # Iniciar descargador
     ajustes = cargar_ajustes()
