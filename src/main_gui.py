@@ -1,4 +1,4 @@
-import platform, os
+import platform, os, sys
 import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
 import threading
@@ -179,13 +179,10 @@ class Ventana:
 
 def main():
     # Configurar ruta de ffmpeg en Windows
-    if platform.system() == "Windows":
-        RUTA_FFMPEG = os.path.join(ruta_base(), "ffmpeg")
-
-        os.environ["PATH"] += os.pathsep + RUTA_FFMPEG
-
-        OPCIONES_BASE["ffmpeg_location"] = RUTA_FFMPEG
-
+    if platform.system() == "Windows" and getattr(sys, "frozen", False):
+        base = sys._MEIPASS
+        return os.path.join(base, "ffmpeg")
+    
     # Iniciar descargador
     ajustes = cargar_ajustes()
 
