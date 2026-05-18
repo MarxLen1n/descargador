@@ -4,13 +4,14 @@ import requests
 import tempfile
 import subprocess
 from pathlib import Path
+from typing import Tuple
 
 from version import VERSION
 
 REPO = "marxlen1n/descargador"
 
 
-def obtener_release():
+def obtener_release() -> dict:
     url = f"https://api.github.com/repos/{REPO}/releases/latest"
 
     r = requests.get(url, timeout=10)
@@ -18,7 +19,7 @@ def obtener_release():
 
     return r.json()
 
-def hay_actualizacion():
+def hay_actualizacion() -> Tuple[bool, dict]:
     try:
         release = obtener_release()
 
@@ -28,7 +29,7 @@ def hay_actualizacion():
     except Exception:
         return False, None
 
-def nombre_asset():
+def nombre_asset() -> str:
     if sys.platform.startswith("win"):
         if "tui" in Path(sys.argv[0]).name:
             return "descargador-tui-windows.exe"
@@ -39,7 +40,7 @@ def nombre_asset():
 
     return "descargador-gui-linux"
 
-def descargar_actualizacion(release):
+def descargar_actualizacion(release) -> str:
     asset_name = nombre_asset()
 
     for asset in release["assets"]:
@@ -61,10 +62,13 @@ def descargar_actualizacion(release):
 
     return tmp.name
 
-def reemplazar_binario(nuevo_archivo):
+def reemplazar_binario(nuevo_archivo) -> None:
+    print(1)
     actual = Path(sys.argv[0]).resolve()
 
+    print(2)
     if sys.platform.startswith("win"):
+        print(3)
         bat = actual.with_suffix(".bat")
 
         bat.write_text(f"""
@@ -75,11 +79,13 @@ start "" "{actual}"
 del "%~f0"
 """)
 
+        print(4)
         subprocess.Popen(
             ["cmd", "/c", str(bat)],
             creationflags=subprocess.CREATE_NO_WINDOW
         )
 
+        print(5)
         sys.exit()
 
     else:
